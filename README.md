@@ -6,7 +6,6 @@ This project contains a Python script that solves the assigned homework problem.
 
 ## Prerequisites
 - Python 3.12 installed on your machine
-- Any required libraries (if applicable)
 
 ## Installation
 git clone https://github.com/plutoka/ZEISS_Data-Engineer_homework.git
