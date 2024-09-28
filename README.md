@@ -8,6 +8,6 @@ This project contains a Python script that solves the assigned homework problem.
 - Python 3.12 installed on your machine
 
 ## Installation
-git clone https://github.com/plutoka/ZEISS_Data-Engineer_homework.git
-cd ZEISS_Data-Engineer_homework
-pip install -r requirements.txt
+- git clone https://github.com/plutoka/ZEISS_Data-Engineer_homework.git
+- cd ZEISS_Data-Engineer_homework
+- pip install -r requirements.txt
