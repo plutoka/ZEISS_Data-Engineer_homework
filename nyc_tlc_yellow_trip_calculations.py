@@ -207,10 +207,9 @@ def calculate_amounts_by_airports(csv_data):
 
     return data
 
-def calculate_average_passenger_count(csv_data):
+def calculate_avg_passenger(csv_data):
     """
-    Optinal task: Calculate avarge passenger count by day
-    
+    Optinal task: Calculate avarge passenger count by date and pickup location
     """
     
     # Dictionary to hold the total passenger count and count of trips per day
@@ -227,21 +226,23 @@ def calculate_average_passenger_count(csv_data):
             # Extract pickup_date and passenger_count
             pickup_date = datetime.strptime(row['tpep_pickup_datetime'], '%Y-%m-%d %H:%M:%S').date()
             passenger_count = int(float(row['passenger_count']))  # Convert to float first, then to int
+            pu_location_id = row['PULocationID']  # Keep PULocationID as string for consistency
 
-            # Update the totals for the respective date
-            passenger_data[pickup_date]['total_passengers'] += passenger_count
-            passenger_data[pickup_date]['trip_count'] += 1
+            # Update the totals for the respective (date, location)
+            passenger_data[(pickup_date, pu_location_id)]['total_passengers'] += passenger_count
+            passenger_data[(pickup_date, pu_location_id)]['trip_count'] += 1
 
         except ValueError as e:
             logging.error(f"Row {row_num}: {e}")
 
     # Convert results to a list of dictionaries
     data = []
-    for date, trip_data in passenger_data.items():
+    for (date, location), trip_data in passenger_data.items():
         if trip_data['trip_count'] > 0:
             average_passenger_count = round(trip_data['total_passengers'] / trip_data['trip_count'], 2)
             data.append({
                 'date': date,
+                'PULocationID': location,
                 'average_passenger_count': average_passenger_count
             })
     
@@ -251,7 +252,7 @@ def calculate_average_passenger_count(csv_data):
 
 trip_distance_entity = 'trip_distance_summary.csv'
 amounts_by_airports_entity = 'amounts_by_airports.csv'
-avg_passenger_by_date_entity = 'avg_passenger_by_date.csv'
+avg_passenger_count_entity = 'avg_passenger_count.csv'
 
 # Read the CSV file
 csv_data = read_csv(args.input_file_path)
@@ -263,11 +264,11 @@ trip_distance_data = calculate_trip_distance(csv_data)
 amounts_data = calculate_amounts_by_airports(csv_data)
 
 # Calculate avarage passenger by trip date
-avg_passenger_data = calculate_average_passenger_count(csv_data)
+avg_passenger_data = calculate_avg_passenger(csv_data)
 
 # Write the results to a new CSV files
 write_csv(trip_distance_data, args.output_folder_path, trip_distance_entity)
 write_csv(amounts_data, args.output_folder_path, amounts_by_airports_entity)
-write_csv(avg_passenger_data, args.output_folder_path, avg_passenger_by_date_entity)
+write_csv(avg_passenger_data, args.output_folder_path, avg_passenger_count_entity)
 
         
