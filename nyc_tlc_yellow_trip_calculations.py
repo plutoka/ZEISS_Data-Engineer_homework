@@ -3,6 +3,7 @@ import csv
 import logging
 import os
 
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 # Initialize logging
@@ -92,7 +93,7 @@ def write_csv(data, output_folder_path, file_name):
     except Exception as e:
         logging.error(f'An error occurred while writing to the file: {e}')
 
-#Calculate the amounts paid (tipAmount, tollsAmount, totalAmount) by airports (rateCodeId)
+
 def calculate_trip_distance(csv_data):
     """
     Task: Calculate the shortest and longest (tripDistance) trips by time of day
@@ -145,9 +146,112 @@ def calculate_trip_distance(csv_data):
             
     return data
 
+def calculate_amounts_by_airports(csv_data):
+    """
+    Task: Calculate the amounts paid (tipAmount, tollsAmount, totalAmount) by airports (rateCodeId)
+    """
+    
+    # Initialize sums for each category
+    totals = {
+        'JFK': {'total_amount': 0.0, 'tip_amount': 0.0, 'tolls_amount': 0.0},
+        'Newark': {'total_amount': 0.0, 'tip_amount': 0.0, 'tolls_amount': 0.0},
+        'Nassau/WC': {'total_amount': 0.0, 'tip_amount': 0.0, 'tolls_amount': 0.0},
+    }
+    
+    # Mapping of ratecodeid to corresponding names
+    rate_code_mapping = {
+        2: 'JFK',
+        3: 'Newark',
+        4: 'Nassau/WC',
+    }
+    
+
+    # Iterate over the CSV rows with enumerate, starting at 1, useful for testing
+    for row_num, row in enumerate(csv_data, start=1):
+        try:
+            """
+            Specification: 
+                The final rate code in effect at the end of the trip. 
+                1= Standard rate; 2= JFK; 3= Newark; 4= Nassau or Westchester; 5= Negotiated fare; 6= Group ride.
+            Reality:
+                Values can be 99, 2.0, 5.0 or empty
+            """
+            # Skip rows where ratecodeid is empty
+            if not row['RatecodeID'].strip():
+                #logging.warning(f"Row {row_num}: RatecodeID is empty, skipping.")
+                continue
+            
+            rate_code_id = int(float(row['RatecodeID']))  # Convert to float first, then to int
+            total_amount = float(row['total_amount'])
+            tip_amount = float(row['tip_amount'])
+            tolls_amount = float(row['tolls_amount'])
+            
+            
+            # We not skip invalid trips, becuase taxi meter errors has no effect on payment
+            # if not is_valid_trip(trip_distance, pickup_time, dropoff_time):
+            #     continue  # Skip invalid trips
+                
+                            
+            # Use the mapping to determine the category
+            category = rate_code_mapping.get(rate_code_id)
+            if category:
+                totals[category]['total_amount'] += total_amount
+                totals[category]['tip_amount'] += tip_amount
+                totals[category]['tolls_amount'] += tolls_amount
+            
+        except ValueError as e:
+            logging.error(f'Row {row_num}: Invalid value - {e}')
+    
+    # Convert totals to a list of dictionaries
+    data = [{'category': key, **value} for key, value in totals.items()]
+
+    return data
+
+def calculate_average_passenger_count(csv_data):
+    """
+    Optinal task: Calculate avarge passenger count by day
+    
+    """
+    
+    # Dictionary to hold the total passenger count and count of trips per day
+    passenger_data = defaultdict(lambda: {'total_passengers': 0, 'trip_count': 0})
+    
+    # Iterate over the CSV rows with enumerate, starting at 1, useful for testing
+    for row_num, row in enumerate(csv_data, start=1):
+        try:
+            # Skip rows where ratecodeid is empty
+            if not row['passenger_count'].strip():
+                #logging.warning(f"Row {row_num}: RatecodeID is empty, skipping.")
+                continue
+                
+            # Extract pickup_date and passenger_count
+            pickup_date = datetime.strptime(row['tpep_pickup_datetime'], '%Y-%m-%d %H:%M:%S').date()
+            passenger_count = int(float(row['passenger_count']))  # Convert to float first, then to int
+
+            # Update the totals for the respective date
+            passenger_data[pickup_date]['total_passengers'] += passenger_count
+            passenger_data[pickup_date]['trip_count'] += 1
+
+        except ValueError as e:
+            logging.error(f"Row {row_num}: {e}")
+
+    # Convert results to a list of dictionaries
+    data = []
+    for date, trip_data in passenger_data.items():
+        if trip_data['trip_count'] > 0:
+            average_passenger_count = round(trip_data['total_passengers'] / trip_data['trip_count'], 2)
+            data.append({
+                'date': date,
+                'average_passenger_count': average_passenger_count
+            })
+    
+    return data
+
+
 
 trip_distance_entity = 'trip_distance_summary.csv'
-
+amounts_by_airports_entity = 'amounts_by_airports.csv'
+avg_passenger_by_date_entity = 'avg_passenger_by_date.csv'
 
 # Read the CSV file
 csv_data = read_csv(args.input_file_path)
@@ -155,7 +259,15 @@ csv_data = read_csv(args.input_file_path)
 # Calculate shortest and longest trip by time of day
 trip_distance_data = calculate_trip_distance(csv_data)
 
-# Write the results to a new CSV file
+# Calculate amounts by airports
+amounts_data = calculate_amounts_by_airports(csv_data)
+
+# Calculate avarage passenger by trip date
+avg_passenger_data = calculate_average_passenger_count(csv_data)
+
+# Write the results to a new CSV files
 write_csv(trip_distance_data, args.output_folder_path, trip_distance_entity)
+write_csv(amounts_data, args.output_folder_path, amounts_by_airports_entity)
+write_csv(avg_passenger_data, args.output_folder_path, avg_passenger_by_date_entity)
 
         
