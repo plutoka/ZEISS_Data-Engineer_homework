@@ -6,7 +6,6 @@ import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-
 # ----------- Section 1: Constants and Configuration -----------
 
 # Initialize logging
@@ -33,7 +32,6 @@ def parse_args():
     
     
     return args
-
 
 """ 
 Function to categorize time of day
@@ -86,7 +84,6 @@ def read_csv(file_path):
         data = [row for row in reader]
     return data
 
-
 # Function to write data to a CSV file with exception handling
 def write_csv(data, output_folder_path, file_name):
     if not data:
@@ -108,7 +105,6 @@ def write_csv(data, output_folder_path, file_name):
         logging.info(f'The results have been saved to {output_file_path}')
     except Exception as e:
         logging.error(f'An error occurred while writing to the file: {e}')
-
 
 def process_trips(csv_data):
     # Initialize dictionaries to store shortest and longest trips
@@ -135,13 +131,21 @@ def process_trips(csv_data):
             pickup_time_of_day = get_time_of_day(pickup_datetime.hour)
             
             # Extract values for calculate amounts by airports
-            # Assign a default value of 1 if RatecodeID is empty. If value is float convert to int as specification declared
+            """
+            Assign a default value of 1 if RatecodeID is empty. 
+            The RatecodeID column is specified as 'int' in the specification, but the data may contain float values.
+            To handle this, convert the float to an int after checking for empty or invalid data.
+            """
             rate_code_id = int(float(row['RatecodeID']) if row['RatecodeID'].strip() else 1)
             total_amount = float(row['total_amount'])
             tip_amount = float(row['tip_amount'])
             tolls_amount = float(row['tolls_amount'])
             
-            # Assign a default value of 0 if passenger_count is empty. If value is float convert to int as specification declared
+            """ 
+            Assign a default value of 0 if passenger_count is empty. 
+            The passenger_count column is specified as 'int' in the specification, but the data may contain float values.
+            To handle this, convert the float to an int after checking for empty or invalid data.
+            """
             passenger_count = int(float(row['passenger_count']) if row['passenger_count'].strip() else 0) 
             pu_location_id = row['PULocationID']  # Keep PULocationID as string for consistency
             

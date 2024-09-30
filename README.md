@@ -46,9 +46,9 @@ The script is designed to handle errors in the data and ensure the output contai
 3. **Environment Setup**:
 	The data extraction script requires the following Python libraries:
 
-	- pandas
-	- pyarrow
-	- requests
+	- `pandas`
+	- `pyarrow`
+	- `requests`
 	
 	Install this libraries manualy or use requirements.txt:
 	
@@ -66,7 +66,7 @@ The script is designed to handle errors in the data and ensure the output contai
 
 ## Usage
 
-To run the scripts, provide the input file path and the output folder path as arguments:
+To run the scripts, provide the arguments:
 
 ```bash
 python nyc_taxi_data_extractor.py <YYYY-MM> <output_folder_path>
@@ -86,7 +86,7 @@ python nyc_taxi_trip_data_processor.py C:\Work\NCY\yellow_tripdata_2024-02.csv C
 	- `output_folder_path`: Path to the folder where output file will be saved.
 	
 	nyc_taxi_trip_data_processor.py:
-	- `input_file_path`: Path to the CSV file containing NYC yellow taxi trip data.
+	- `input_file_path`: Chosen month of data analysis.
 	- `output_folder_path`: Path to the folder where output files will be saved.
 	
 ## Input File Format
@@ -149,6 +149,8 @@ The script generates three CSV files in the output folder:
 - **Invalid Data**:  
   The data processor script validates trips using the `is_valid_trip()` function while calculate trip distance.
   The function filters out entries with incorrect trip distances, invalid pickup and dropoff times, or extremely short trips (<1 minute).
+  The `RatecodeID` and `passenger_count` columns is specified as 'int' in the specification, but the data may contain float and empty values.
+  We replace empty values to a default and convert float values to int.
   
 - **Row-Level Validation**:  
   Each row in the CSV file is processed in a `try-except` block to handle potential issues such as missing or malformed data. Errors are logged with the row number and error details.
