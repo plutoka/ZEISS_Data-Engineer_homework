@@ -82,11 +82,11 @@ python nyc_taxi_trip_data_processor.py C:\Work\NCY\yellow_tripdata_2024-02.csv C
 
 ### Arguments:
 	nyc_taxi_data_extractor.py:
-	- `month_of_data`: Path to the CSV file containing NYC yellow taxi trip data.
+	- `month_of_data`: Chosen month of data analysis.
 	- `output_folder_path`: Path to the folder where output file will be saved.
 	
 	nyc_taxi_trip_data_processor.py:
-	- `input_file_path`: Chosen month of data analysis.
+	- `input_file_path`: Path to the CSV file containing NYC yellow taxi trip data.
 	- `output_folder_path`: Path to the folder where output files will be saved.
 	
 ## Input File Format
